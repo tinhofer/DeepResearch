@@ -1,8 +1,10 @@
-entrypoint = "main.py"
+entrypoint = "webui.py" # Keep entrypoint simple
+run = ["python", "webui.py", "--ip", "0.0.0.0", "--port", "8080"]
 modules = ["python-3.11"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["ffmpeg-full", "gitFull", "playwright-driver"]
 
 [unitTest]
 language = "python3"
@@ -13,3 +15,21 @@ requiredFiles = [".replit", "replit.nix"]
 [deployment]
 run = ["python3", "main.py"]
 deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 8080
+externalPort = 80
+
+[workflows]
+
+[[workflows.workflow]]
+name = "Run Web-UI"
+mode = "sequential"
+author = 36173693
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python webui.py --ip 0.0.0.0 --port 8080"
+
+[agent]
+expertMode = true
