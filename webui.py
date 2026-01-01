@@ -565,9 +565,12 @@ async def run_with_stream(
                 final_result, errors, model_actions, model_thoughts, latest_videos, trace, history_file, stop_button, run_button = result
             except gr.Error:
                 final_result = ""
+                errors = "Gradio Error"
                 model_actions = ""
                 model_thoughts = ""
                 latest_videos = trace = history_file = None
+                stop_button = gr.update(value="Stop", interactive=True)
+                run_button = gr.update(interactive=True)
 
             except Exception as e:
                 errors = f"Agent error: {str(e)}"
@@ -1037,7 +1040,8 @@ def main():
     config_dict = default_config()
 
     demo = create_ui(config_dict, theme_name=args.theme)
-    demo.launch(server_name=args.ip, server_port=args.port)
+    # demo.launch(server_name=args.ip, server_port=args.port)
+    demo.launch(server_name="0.0.0.0", server_port=5000, share=False)
 
 if __name__ == '__main__':
     main()
