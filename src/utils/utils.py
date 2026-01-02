@@ -141,12 +141,12 @@ def get_llm_model(provider: str, **kwargs):
     
 # Predefined model names for common providers
 model_names = {
-    "anthropic": ["claude-3-5-sonnet-20240620", "claude-3-opus-20240229"],
-    "openai": ["gpt-4o", "gpt-4", "gpt-3.5-turbo", "o3-mini"],
+    "anthropic": ["claude-opus-4-5-20251101", "claude-sonnet-4-20250514", "claude-3-5-sonnet-20240620", "claude-3-opus-20240229"],
+    "openai": ["gpt-5.2", "gpt-4o", "gpt-4", "gpt-3.5-turbo", "o3-mini"],
     "deepseek": ["deepseek-chat", "deepseek-reasoner"],
     "google": ["gemini-2.0-flash-exp", "gemini-2.0-flash-thinking-exp", "gemini-1.5-flash-latest", "gemini-1.5-flash-8b-latest", "gemini-2.0-flash-thinking-exp-01-21"],
     "ollama": ["qwen2.5:7b", "llama2:7b", "deepseek-r1:14b", "deepseek-r1:32b"],
-    "azure_openai": ["gpt-4o", "gpt-4", "gpt-3.5-turbo"],
+    "azure_openai": ["gpt-5.2", "gpt-4o", "gpt-4", "gpt-3.5-turbo"],
     "mistral": ["pixtral-large-latest", "mistral-large-latest", "mistral-small-latest", "ministral-8b-latest"]
 }
 
