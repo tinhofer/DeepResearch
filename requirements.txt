@@ -1,5 +1,15 @@
+# Browser automation core
+# NOTE: browser-use==0.1.29 is pinned due to breaking API changes in later versions.
+# Upgrading to 0.2+ requires significant code refactoring (telemetry, context APIs changed).
 browser-use==0.1.29
-pyperclip==1.9.0
-gradio==5.10.0
+
+# LangChain - pinned for compatibility with browser-use 0.1.29
+langchain-core>=1.1.0,<2.0.0
+langchain-mistralai>=0.2.4
+
+# Web UI
+gradio>=5.10.0
+
+# Utilities
+pyperclip>=1.9.0
 json-repair
-langchain-mistralai==0.2.4

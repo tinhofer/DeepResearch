@@ -1,5 +1,3 @@
-import pdb
-
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,7 +13,7 @@ import json
 import re
 from browser_use.agent.service import Agent
 from browser_use.browser.browser import BrowserConfig, Browser
-from langchain.schema import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 from json_repair import repair_json
 from src.agent.custom_prompts import CustomSystemPrompt, CustomAgentMessagePrompt
 from src.controller.custom_controller import CustomController

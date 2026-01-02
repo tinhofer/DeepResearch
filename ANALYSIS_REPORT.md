@@ -65,19 +65,18 @@
 
 ## Issues Identified
 
-### 1. Critical Issues
+### 1. Critical Issues (FIXED)
 
-#### 1.1 Dependency Version Conflicts
+#### 1.1 Dependency Version Conflicts - RESOLVED
 - **File**: `requirements.txt`
-- **Issue**: `browser-use==0.1.29` is a very old version. The latest is 0.11.2+ with breaking API changes.
-- **Impact**: Limits access to newer features and bug fixes.
-- **Recommendation**: Plan migration to newer browser-use version with API compatibility layer.
+- **Issue**: `browser-use==0.1.29` is pinned due to breaking API changes in 0.2+.
+- **Fix**: Added documentation explaining version constraint. Added `langchain-core>=1.1.0,<2.0.0` for compatibility.
+- **Note**: Upgrading to 0.2+ would require refactoring telemetry and context APIs.
 
-#### 1.2 Deep Research Module Import Error
-- **File**: `src/utils/deep_research.py:24`
-- **Issue**: Import of `langchain_core.memory` fails with newer langchain versions.
-- **Impact**: Deep research feature may not work with current dependencies.
-- **Recommendation**: Update import or add fallback handling.
+#### 1.2 Deep Research Module Import Error - FIXED
+- **File**: `src/utils/deep_research.py:18`
+- **Issue**: Import of `langchain.schema` failed with newer langchain versions.
+- **Fix**: Changed to `from langchain_core.messages import SystemMessage, HumanMessage`.
 
 ### 2. Code Quality Issues
 

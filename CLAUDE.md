@@ -112,9 +112,10 @@ python -m pytest tests/ -v
 
 ## Known Issues
 
-1. **Dependency Version**: Using older `browser-use==0.1.29` (latest is 0.11.2+)
-2. **Deep Research Import**: May fail with newer langchain versions
-3. **Debug Code**: Some `pdb` imports remain in codebase
+1. **Dependency Version**: `browser-use==0.1.29` is pinned due to breaking API changes in 0.2+
+   - Upgrading requires refactoring telemetry and context APIs
+   - See requirements.txt for version constraints
+2. **Debug Code**: Some `pdb` imports remain in test files
 
 ## Common Tasks
 

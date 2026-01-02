@@ -243,6 +243,19 @@ class TestLLMFactory:
                 os.environ["OPENAI_API_KEY"] = old_key
 
 
+class TestDeepResearch:
+    """Tests for deep research module."""
+
+    def test_deep_research_import(self):
+        """Test that deep_research module imports correctly.
+
+        This was fixed by changing langchain.schema import to langchain_core.messages.
+        """
+        from src.utils.deep_research import deep_research
+        assert deep_research is not None
+        assert callable(deep_research)
+
+
 class TestIntegration:
     """Integration tests that verify component interactions."""
 
