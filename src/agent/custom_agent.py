@@ -261,10 +261,11 @@ class CustomAgent(Agent):
                                                     Something new appeared after action {actions[len(result) - 1].model_dump_json(exclude_unset=True)}",
                                                 is_done=False))
             if len(actions) == 0:
-                # TODO: fix no action case
-                result = [ActionResult(is_done=True, extracted_content=step_info.memory, include_in_memory=True)]
+                # No actions returned - don't auto-complete, let the agent continue
+                logger.warning("No actions returned by the model, continuing to next step")
+                result = [ActionResult(is_done=False, extracted_content=step_info.memory, include_in_memory=True)]
             for ret_ in result:
-                if "Extracted page" in ret_.extracted_content:
+                if ret_.extracted_content and "Extracted page" in ret_.extracted_content:
                     # record every extracted page
                     self.extracted_content += ret_.extracted_content
             self._last_result = result
