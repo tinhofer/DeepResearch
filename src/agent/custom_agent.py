@@ -1,6 +1,5 @@
 import json
 import logging
-import pdb
 import traceback
 from typing import Optional, Type, List, Dict, Any, Callable
 from PIL import Image, ImageDraw, ImageFont
