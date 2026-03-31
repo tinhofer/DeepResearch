@@ -1,30 +1,26 @@
-import pdb
-
 from dotenv import load_dotenv
 
 load_dotenv()
 import asyncio
 import os
-import sys
 import logging
-from pprint import pprint
 from uuid import uuid4
 from src.utils import utils
 from src.agent.custom_agent import CustomAgent
 import json
 import re
-from browser_use.agent.service import Agent
-from browser_use.browser.browser import BrowserConfig, Browser
+from browser_use.browser.browser import BrowserConfig
 from langchain.schema import SystemMessage, HumanMessage
 from json_repair import repair_json
 from src.agent.custom_prompts import CustomSystemPrompt, CustomAgentMessagePrompt
 from src.controller.custom_controller import CustomController
 from src.browser.custom_browser import CustomBrowser
-from src.browser.custom_context import BrowserContextConfig
 from browser_use.browser.context import (
     BrowserContextConfig,
     BrowserContextWindowSize,
 )
+from src.utils.exceptions import LLMResponseParseError, ResearchError
+from src.utils.retry import retry_async
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +160,7 @@ Provide your output as a JSON formatted list. Each item in the list must adhere 
             history_infos_ = json.dumps(history_infos, indent=4)
             query_prompt = f"This is search {search_iteration} of {max_search_iterations} maximum searches allowed.\n User Instruction:{task} \n Previous Queries:\n {history_query_} \n Previous Search Results:\n {history_infos_}\n"
             search_messages.append(HumanMessage(content=query_prompt))
-            ai_query_msg = llm.invoke(search_messages[:1] + search_messages[1:][-1:])
+            ai_query_msg = await retry_async(llm.invoke, search_messages[:1] + search_messages[1:][-1:])
             search_messages.append(ai_query_msg)
             if hasattr(ai_query_msg, "reasoning_content"):
                 logger.info("🤯 Start Search Deep Thinking: ")
@@ -172,7 +168,10 @@ Provide your output as a JSON formatted list. Each item in the list must adhere 
                 logger.info("🤯 End Search Deep Thinking")
             ai_query_content = ai_query_msg.content.replace("```json", "").replace("```", "")
             ai_query_content = repair_json(ai_query_content)
-            ai_query_content = json.loads(ai_query_content)
+            try:
+                ai_query_content = json.loads(ai_query_content)
+            except (json.JSONDecodeError, TypeError) as e:
+                raise LLMResponseParseError(f"Failed to parse query generation response: {e}") from e
             query_plan = ai_query_content["plan"]
             logger.info(f"Current Iteration {search_iteration} Planing:")
             logger.info(query_plan)
@@ -255,7 +254,7 @@ Provide your output as a JSON formatted list. Each item in the list must adhere 
                     history_infos_ = json.dumps(history_infos, indent=4)
                     record_prompt = f"User Instruction:{task}. \nPrevious Recorded Information:\n {history_infos_}\n Current Search Iteration: {search_iteration}\n Current Search Plan:\n{query_plan}\n Current Search Query:\n {query_tasks[i]}\n Current Search Results: {query_result_}\n "
                     record_messages.append(HumanMessage(content=record_prompt))
-                    ai_record_msg = llm.invoke(record_messages[:1] + record_messages[-1:])
+                    ai_record_msg = await retry_async(llm.invoke, record_messages[:1] + record_messages[-1:])
                     record_messages.append(ai_record_msg)
                     if hasattr(ai_record_msg, "reasoning_content"):
                         logger.info("🤯 Start Record Deep Thinking: ")
@@ -263,7 +262,11 @@ Provide your output as a JSON formatted list. Each item in the list must adhere 
                         logger.info("🤯 End Record Deep Thinking")
                     record_content = ai_record_msg.content
                     record_content = repair_json(record_content)
-                    new_record_infos = json.loads(record_content)
+                    try:
+                        new_record_infos = json.loads(record_content)
+                    except (json.JSONDecodeError, TypeError) as e:
+                        logger.warning("Failed to parse record response, skipping: %s", e)
+                        continue
                     history_infos.extend(new_record_infos)
 
         logger.info("\nFinish Searching, Start Generating Report...")
@@ -271,8 +274,11 @@ Provide your output as a JSON formatted list. Each item in the list must adhere 
         # 5. Report Generation in Markdown (or JSON if you prefer)
         return await generate_final_report(task, history_infos, save_dir, llm)
 
+    except (LLMResponseParseError, ResearchError) as e:
+        logger.error("Deep research error: %s", e)
+        return await generate_final_report(task, history_infos, save_dir, llm, str(e))
     except Exception as e:
-        logger.error(f"Deep research Error: {e}")
+        logger.error("Unexpected deep research error: %s", e, exc_info=True)
         return await generate_final_report(task, history_infos, save_dir, llm, str(e))
     finally:
         if browser:
@@ -325,7 +331,7 @@ async def generate_final_report(task, history_infos, save_dir, llm, error_msg=No
         report_prompt = f"User Instruction:{task} \n Search Information:\n {history_infos_}"
         report_messages = [SystemMessage(content=writer_system_prompt),
                            HumanMessage(content=report_prompt)]  # New context for report generation
-        ai_report_msg = llm.invoke(report_messages)
+        ai_report_msg = await retry_async(llm.invoke, report_messages)
         if hasattr(ai_report_msg, "reasoning_content"):
             logger.info("🤯 Start Report Deep Thinking: ")
             logger.info(ai_report_msg.reasoning_content)
