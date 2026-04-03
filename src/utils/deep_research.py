@@ -269,11 +269,13 @@ Provide your output as a JSON formatted list. Each item in the list must adhere 
         logger.info("\nFinish Searching, Start Generating Report...")
 
         # 5. Report Generation in Markdown (or JSON if you prefer)
-        return await generate_final_report(task, history_infos, save_dir, llm)
+        report_content, report_file_path = await generate_final_report(task, history_infos, save_dir, llm)
+        return report_content, report_file_path, save_dir, history_infos
 
     except Exception as e:
         logger.error(f"Deep research Error: {e}")
-        return await generate_final_report(task, history_infos, save_dir, llm, str(e))
+        report_content, report_file_path = await generate_final_report(task, history_infos, save_dir, llm, str(e))
+        return report_content, report_file_path, save_dir, history_infos
     finally:
         if browser:
             await browser.close()

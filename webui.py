@@ -626,13 +626,14 @@ async def close_global_browser():
         await _global_browser.close()
         _global_browser = None
         
-async def run_deep_search(research_task, max_search_iteration_input, max_query_per_iter_input, llm_provider, llm_model_name, llm_temperature, llm_base_url, llm_api_key, use_vision, use_own_browser, headless):
+async def run_deep_search(research_task, max_search_iteration_input, max_query_per_iter_input, llm_provider, llm_model_name, llm_temperature, llm_base_url, llm_api_key, use_vision, use_own_browser, headless, obsidian_export):
     from src.utils.deep_research import deep_research
+    from src.utils.obsidian_export import convert_to_obsidian
     global _global_agent_state
 
     # Clear any previous stop request
     _global_agent_state.clear_stop()
-    
+
     llm = utils.get_llm_model(
             provider=llm_provider,
             model_name=llm_model_name,
@@ -640,15 +641,30 @@ async def run_deep_search(research_task, max_search_iteration_input, max_query_p
             base_url=llm_base_url,
             api_key=llm_api_key,
         )
-    markdown_content, file_path = await deep_research(research_task, llm, _global_agent_state,
+    markdown_content, file_path, save_dir, history_infos = await deep_research(research_task, llm, _global_agent_state,
                                                         max_search_iterations=max_search_iteration_input,
                                                         max_query_num=max_query_per_iter_input,
                                                         use_vision=use_vision,
                                                         headless=headless,
                                                         use_own_browser=use_own_browser
                                                         )
-    
-    return markdown_content, file_path, gr.update(value="Stop", interactive=True),  gr.update(interactive=True) 
+
+    obsidian_file = None
+    if obsidian_export and markdown_content and save_dir:
+        try:
+            _, obsidian_file = convert_to_obsidian(
+                markdown_content, research_task, history_infos or [], save_dir
+            )
+        except Exception as e:
+            logger.error(f"Obsidian export failed: {e}")
+
+    return (
+        markdown_content,
+        file_path,
+        gr.update(visible=bool(obsidian_file), value=obsidian_file),
+        gr.update(value="Stop", interactive=True),
+        gr.update(interactive=True),
+    )
     
 
 def create_ui(config, theme_name="Ocean"):
@@ -856,10 +872,14 @@ def create_ui(config, theme_name="Ocean"):
                     max_search_iteration_input = gr.Number(label="Max Search Iteration", value=3, precision=0) # precision=0 确保是整数
                     max_query_per_iter_input = gr.Number(label="Max Query per Iteration", value=1, precision=0) # precision=0 确保是整数
                 with gr.Row():
+                    obsidian_export_toggle = gr.Checkbox(label="📒 Obsidian Export", value=False, info="Generate Obsidian-compatible markdown with frontmatter, tags, and linked sources (great for mobile)")
+                with gr.Row():
                     research_button = gr.Button("▶️ Run Deep Research", variant="primary", scale=2)
                     stop_research_button = gr.Button("⏹️ Stop", variant="stop", scale=1)
                 markdown_output_display = gr.Markdown(label="Research Report")
-                markdown_download = gr.File(label="Download Research Report")
+                with gr.Row():
+                    markdown_download = gr.File(label="Download Research Report")
+                    obsidian_download = gr.File(label="📒 Download Obsidian Report", visible=False)
 
 
             with gr.TabItem("📊 Results", id=6):
@@ -924,8 +944,8 @@ def create_ui(config, theme_name="Ocean"):
                 # Run Deep Research
                 research_button.click(
                         fn=run_deep_search,
-                        inputs=[research_task_input, max_search_iteration_input, max_query_per_iter_input, llm_provider, llm_model_name, llm_temperature, llm_base_url, llm_api_key, use_vision, use_own_browser, headless],
-                        outputs=[markdown_output_display, markdown_download, stop_research_button, research_button]
+                        inputs=[research_task_input, max_search_iteration_input, max_query_per_iter_input, llm_provider, llm_model_name, llm_temperature, llm_base_url, llm_api_key, use_vision, use_own_browser, headless, obsidian_export_toggle],
+                        outputs=[markdown_output_display, markdown_download, obsidian_download, stop_research_button, research_button]
                 )
                 # Bind the stop button click event after errors_output is defined
                 stop_research_button.click(
