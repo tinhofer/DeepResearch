@@ -19,8 +19,8 @@ async def test_deep_research():
         api_key=os.getenv("GOOGLE_API_KEY", "")
     )
     
-    report_content, report_file_path = await deep_research(task=task, llm=llm, agent_state=None, 
-                                                           max_search_iterations=1, 
+    report_content, report_file_path, save_dir, history_infos = await deep_research(task=task, llm=llm, agent_state=None,
+                                                           max_search_iterations=1,
                                                            max_query_num=3,
                                                            use_own_browser=False)
     
