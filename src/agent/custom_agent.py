@@ -32,6 +32,7 @@ from langchain_core.messages import (
 )
 from json_repair import repair_json
 from src.utils.agent_state import AgentState
+from src.utils.exceptions import LLMResponseParseError
 
 from .custom_message_manager import CustomMessageManager
 from .custom_views import CustomAgentOutput, CustomAgentStepInfo
@@ -206,12 +207,16 @@ class CustomAgent(Agent):
 
         ai_content = ai_content.replace("```json", "").replace("```", "")
         ai_content = repair_json(ai_content)
-        parsed_json = json.loads(ai_content)
-        parsed: AgentOutput = self.AgentOutput(**parsed_json)
-        
-        if parsed is None:
-            logger.debug(ai_message.content)
-            raise ValueError('Could not parse response.')
+        try:
+            parsed_json = json.loads(ai_content)
+        except (json.JSONDecodeError, TypeError) as e:
+            logger.debug("Unparseable LLM response: %s", ai_message.content)
+            raise LLMResponseParseError(f"Failed to parse LLM action response: {e}") from e
+
+        try:
+            parsed: AgentOutput = self.AgentOutput(**parsed_json)
+        except Exception as e:
+            raise LLMResponseParseError(f"LLM response did not match expected schema: {e}") from e
 
         # Limit actions to maximum allowed per step
         parsed.action = parsed.action[: self.max_actions_per_step]
@@ -408,7 +413,7 @@ class CustomAgent(Agent):
             self.history.history.append(stop_history)
 
         except Exception as e:
-            logger.error(f"Error creating stop history item: {e}")
+            logger.error("Error creating stop history item: %s", e, exc_info=True)
             # Create empty state as fallback
             state = self._create_empty_state()
             stop_history = AgentHistory(

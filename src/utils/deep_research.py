@@ -21,6 +21,7 @@ from browser_use.browser.context import (
 )
 from src.utils.exceptions import LLMResponseParseError, ResearchError
 from src.utils.retry import retry_async
+from src.utils.tokens import truncate_to_token_limit
 
 logger = logging.getLogger(__name__)
 
@@ -249,8 +250,8 @@ Provide your output as a JSON formatted list. Each item in the list must adhere 
                     if not query_result_:
                         continue
                     else:
-                        # TODO: limit content lenght: 128k tokens, ~3 chars per token
-                        query_result_ = query_result_[:128000 * 3]
+                        model_name = getattr(llm, "model_name", None) or getattr(llm, "model", None)
+                        query_result_ = truncate_to_token_limit(query_result_, max_tokens=128000, model_name=model_name)
                     history_infos_ = json.dumps(history_infos, indent=4)
                     record_prompt = f"User Instruction:{task}. \nPrevious Recorded Information:\n {history_infos_}\n Current Search Iteration: {search_iteration}\n Current Search Plan:\n{query_plan}\n Current Search Query:\n {query_tasks[i]}\n Current Search Results: {query_result_}\n "
                     record_messages.append(HumanMessage(content=record_prompt))

@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from src.utils.logging_config import setup_logging
+
 import gradio as gr
 from gradio.themes import Citrus, Default, Glass, Monochrome, Ocean, Origin, Soft, Base
 
@@ -335,6 +337,8 @@ def main():
     parser.add_argument("--theme", type=str, default="Ocean", choices=theme_map.keys(), help="Theme to use for the UI")
     parser.add_argument("--dark-mode", action="store_true", help="Enable dark mode")
     args = parser.parse_args()
+
+    setup_logging(level=logging.INFO)
 
     config_dict = default_config()
     demo = create_ui(config_dict, theme_name=args.theme)
