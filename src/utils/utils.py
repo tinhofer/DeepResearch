@@ -1,9 +1,12 @@
 import base64
+import logging
 import os
 import time
 from pathlib import Path
 from typing import Dict, Optional
 import requests
+
+logger = logging.getLogger(__name__)
 
 from langchain_anthropic import ChatAnthropic
 from langchain_mistralai import ChatMistralAI
@@ -202,7 +205,7 @@ def get_latest_files(directory: str, file_types: list = ['.webm', '.zip']) -> Di
                 if time.time() - latest.stat().st_mtime > 1.0:
                     latest_files[file_type] = str(latest)
         except Exception as e:
-            print(f"Error getting latest {file_type} file: {e}")
+            logger.warning("Error getting latest %s file: %s", file_type, e)
             
     return latest_files
 async def capture_screenshot(browser_context):
@@ -230,7 +233,6 @@ async def capture_screenshot(browser_context):
     else:
         return None
 
-    # Take screenshot
     try:
         screenshot = await active_page.screenshot(
             type='jpeg',
@@ -240,4 +242,5 @@ async def capture_screenshot(browser_context):
         encoded = base64.b64encode(screenshot).decode('utf-8')
         return encoded
     except Exception as e:
+        logger.debug("Screenshot capture failed: %s", e)
         return None

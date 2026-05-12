@@ -19,6 +19,7 @@ from langchain_core.messages import (
 )
 from langchain_openai import ChatOpenAI
 from ..utils.llm import DeepSeekR1ChatOpenAI
+from ..utils.tokens import count_tokens
 from .custom_prompts import CustomAgentMessagePrompt
 
 logger = logging.getLogger(__name__)
@@ -95,13 +96,11 @@ class CustomMessageManager(MessageManager):
             try:
                 tokens = self.llm.get_num_tokens(text)
             except Exception:
-                tokens = (
-					len(text) // self.estimated_characters_per_token
-				)  # Rough estimate if no tokenizer available
+                model_name = getattr(self.llm, "model_name", None) or getattr(self.llm, "model", None)
+                tokens = count_tokens(text, model_name=model_name)
         else:
-            tokens = (
-				len(text) // self.estimated_characters_per_token
-			)  # Rough estimate if no tokenizer available
+            model_name = getattr(self.llm, "model_name", None) or getattr(self.llm, "model", None)
+            tokens = count_tokens(text, model_name=model_name)
         return tokens
 
     def _remove_state_message_by_index(self, remove_ind=-1) -> None:
