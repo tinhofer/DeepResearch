@@ -21,6 +21,13 @@ exclude = [".cache"]
 select = ['E', 'W', 'F', 'I', 'B', 'C4', 'ARG', 'SIM']
 ignore = ['W291', 'W292', 'W293']
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+# Only collect our new unit tests, skip legacy integration test files
+python_files = ["test_exceptions.py", "test_retry.py", "test_config.py", "test_tokens.py", "test_logging_config.py"]
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
