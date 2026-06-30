@@ -6,10 +6,10 @@ authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
 python = ">=3.10.0,<3.13"
-playwright = "1.40.0"
+playwright = "^1.55.1"
 langchain-ollama = "^0.2.3"
 python-dotenv = "^1.0.1"
-gradio = "^5.16.0"
+gradio = "^5.31.0"
 
 [tool.pyright]
 # https://github.com/microsoft/pyright/blob/main/docs/configuration.md
