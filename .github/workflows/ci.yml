@@ -38,9 +38,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install poetry
-          poetry install --no-interaction
-          pip install pyright pytest pytest-asyncio
+          pip install pyright pytest pytest-asyncio gradio pydantic python-dotenv
 
       - name: Run Pyright
         run: pyright
@@ -58,9 +56,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install poetry
-          poetry install --no-interaction
-          pip install pytest pytest-asyncio
+          pip install pytest pytest-asyncio gradio pydantic python-dotenv
 
       - name: Run tests
         run: python -m pytest tests/ -v
