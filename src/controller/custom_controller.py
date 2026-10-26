@@ -1,23 +1,15 @@
-import pyperclip
+import logging
 from typing import Optional, Type
-from pydantic import BaseModel
+
+import pyperclip
 from browser_use.agent.views import ActionResult
 from browser_use.browser.context import BrowserContext
-from browser_use.controller.service import Controller, DoneAction
-from main_content_extractor import MainContentExtractor
+from browser_use.controller.service import Controller
 from browser_use.controller.views import (
-    ClickElementAction,
-    DoneAction,
     ExtractPageContentAction,
-    GoToUrlAction,
-    InputTextAction,
-    OpenTabAction,
-    ScrollAction,
-    SearchGoogleAction,
-    SendKeysAction,
-    SwitchTabAction,
 )
-import logging
+from main_content_extractor import MainContentExtractor
+from pydantic import BaseModel
 
 from src.utils.exceptions import ContentExtractionError
 

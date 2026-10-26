@@ -2,8 +2,7 @@
 
 import asyncio
 import logging
-import functools
-from typing import TypeVar, Callable, Any
+from typing import Any, Callable, TypeVar
 
 from src.utils.exceptions import LLMConnectionError
 

@@ -2,23 +2,20 @@ from dotenv import load_dotenv
 
 load_dotenv()
 import asyncio
-import os
-import logging
-from uuid import uuid4
-from src.utils import utils
-from src.agent.custom_agent import CustomAgent
 import json
+import logging
+import os
 import re
+from uuid import uuid4
+
 from browser_use.browser.browser import BrowserConfig
-from langchain.schema import SystemMessage, HumanMessage
 from json_repair import repair_json
-from src.agent.custom_prompts import CustomSystemPrompt, CustomAgentMessagePrompt
-from src.controller.custom_controller import CustomController
+from langchain.schema import HumanMessage, SystemMessage
+
+from src.agent.custom_agent import CustomAgent
+from src.agent.custom_prompts import CustomAgentMessagePrompt, CustomSystemPrompt
 from src.browser.custom_browser import CustomBrowser
-from browser_use.browser.context import (
-    BrowserContextConfig,
-    BrowserContextWindowSize,
-)
+from src.controller.custom_controller import CustomController
 from src.utils.exceptions import LLMResponseParseError, ResearchError
 from src.utils.retry import retry_async
 from src.utils.tokens import truncate_to_token_limit

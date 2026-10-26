@@ -3,8 +3,6 @@
 import json
 import logging
 
-import pytest
-
 from src.utils.logging_config import ReadableFormatter, StructuredFormatter, setup_logging
 
 

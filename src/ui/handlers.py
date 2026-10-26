@@ -6,7 +6,6 @@ import logging
 import os
 
 import gradio as gr
-
 from browser_use.agent.service import Agent
 from browser_use.browser.browser import Browser, BrowserConfig
 from browser_use.browser.context import (
@@ -15,12 +14,11 @@ from browser_use.browser.context import (
 )
 
 from src.agent.custom_agent import CustomAgent
-from src.agent.custom_prompts import CustomSystemPrompt, CustomAgentMessagePrompt
+from src.agent.custom_prompts import CustomAgentMessagePrompt, CustomSystemPrompt
 from src.browser.custom_browser import CustomBrowser
-from src.browser.custom_context import BrowserContextConfig as CustomBrowserContextConfig, CustomBrowserContext
 from src.controller.custom_controller import CustomController
 from src.utils import utils
-from src.utils.utils import get_latest_files, capture_screenshot
+from src.utils.utils import capture_screenshot, get_latest_files
 
 from . import browser_state as bs
 

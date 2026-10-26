@@ -5,22 +5,16 @@ from typing import List, Optional, Type
 
 from browser_use.agent.message_manager.service import MessageManager
 from browser_use.agent.message_manager.views import MessageHistory
-from browser_use.agent.prompts import SystemPrompt, AgentMessagePrompt
-from browser_use.agent.views import ActionResult, AgentStepInfo, ActionModel
+from browser_use.agent.prompts import AgentMessagePrompt, SystemPrompt
+from browser_use.agent.views import ActionModel, ActionResult, AgentStepInfo
 from browser_use.browser.views import BrowserState
-from langchain_core.language_models import BaseChatModel
 from langchain_anthropic import ChatAnthropic
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import (
-	AIMessage,
-	BaseMessage,
-	HumanMessage,
-    ToolMessage
-)
+from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
+
 from ..utils.llm import DeepSeekR1ChatOpenAI
 from ..utils.tokens import count_tokens
-from .custom_prompts import CustomAgentMessagePrompt
 
 logger = logging.getLogger(__name__)
 

@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.utils.tokens import count_tokens, truncate_to_token_limit, FALLBACK_CHARS_PER_TOKEN
+from src.utils.tokens import FALLBACK_CHARS_PER_TOKEN, count_tokens, truncate_to_token_limit
 
 
 class TestCountTokens:

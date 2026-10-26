@@ -1,31 +1,30 @@
-import logging
 import argparse
-import os
 import glob
+import logging
+import os
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from src.utils.logging_config import setup_logging
-
 import gradio as gr
-from gradio.themes import Citrus, Default, Glass, Monochrome, Ocean, Origin, Soft, Base
+from gradio.themes import Base, Citrus, Default, Glass, Monochrome, Ocean, Origin, Soft
 
+from src.ui.browser_state import close_global_browser
+from src.ui.handlers import (
+    run_deep_search,
+    run_with_stream,
+    stop_agent,
+    stop_research_agent,
+)
 from src.utils import utils
 from src.utils.default_config_settings import (
     default_config,
     save_current_config,
     update_ui_from_config,
 )
+from src.utils.logging_config import setup_logging
 from src.utils.utils import update_model_dropdown
-from src.ui.browser_state import close_global_browser
-from src.ui.handlers import (
-    run_with_stream,
-    run_deep_search,
-    stop_agent,
-    stop_research_agent,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -73,114 +72,111 @@ def create_ui(config, theme_name="Ocean"):
             )
 
         with gr.Tabs() as tabs:
-            with gr.TabItem("⚙️ Agent Settings", id=1):
-                with gr.Group():
-                    agent_type = gr.Radio(
-                        ["org", "custom"],
-                        label="Agent Type",
-                        value=config['agent_type'],
-                        info="Select the type of agent to use",
+            with gr.TabItem("⚙️ Agent Settings", id=1), gr.Group():
+                agent_type = gr.Radio(
+                    ["org", "custom"],
+                    label="Agent Type",
+                    value=config['agent_type'],
+                    info="Select the type of agent to use",
+                )
+                with gr.Column():
+                    max_steps = gr.Slider(
+                        minimum=1, maximum=200, value=config['max_steps'],
+                        step=1, label="Max Run Steps",
+                        info="Maximum number of steps the agent will take",
                     )
-                    with gr.Column():
-                        max_steps = gr.Slider(
-                            minimum=1, maximum=200, value=config['max_steps'],
-                            step=1, label="Max Run Steps",
-                            info="Maximum number of steps the agent will take",
-                        )
-                        max_actions_per_step = gr.Slider(
-                            minimum=1, maximum=20, value=config['max_actions_per_step'],
-                            step=1, label="Max Actions per Step",
-                            info="Maximum number of actions the agent will take per step",
-                        )
-                    with gr.Column():
-                        use_vision = gr.Checkbox(
-                            label="Use Vision", value=config['use_vision'],
-                            info="Enable visual processing capabilities",
-                        )
-                        tool_calling_method = gr.Dropdown(
-                            label="Tool Calling Method", value=config['tool_calling_method'],
-                            interactive=True, allow_custom_value=True,
-                            choices=["auto", "json_schema", "function_calling"],
-                            info="Tool Calls Funtion Name", visible=False,
-                        )
+                    max_actions_per_step = gr.Slider(
+                        minimum=1, maximum=20, value=config['max_actions_per_step'],
+                        step=1, label="Max Actions per Step",
+                        info="Maximum number of actions the agent will take per step",
+                    )
+                with gr.Column():
+                    use_vision = gr.Checkbox(
+                        label="Use Vision", value=config['use_vision'],
+                        info="Enable visual processing capabilities",
+                    )
+                    tool_calling_method = gr.Dropdown(
+                        label="Tool Calling Method", value=config['tool_calling_method'],
+                        interactive=True, allow_custom_value=True,
+                        choices=["auto", "json_schema", "function_calling"],
+                        info="Tool Calls Funtion Name", visible=False,
+                    )
 
-            with gr.TabItem("🔧 LLM Configuration", id=2):
-                with gr.Group():
-                    llm_provider = gr.Dropdown(
-                        choices=[provider for provider in utils.model_names],
-                        label="LLM Provider", value=config['llm_provider'],
-                        info="Select your preferred language model provider",
+            with gr.TabItem("🔧 LLM Configuration", id=2), gr.Group():
+                llm_provider = gr.Dropdown(
+                    choices=[provider for provider in utils.model_names],
+                    label="LLM Provider", value=config['llm_provider'],
+                    info="Select your preferred language model provider",
+                )
+                llm_model_name = gr.Dropdown(
+                    label="Model Name", choices=utils.model_names['openai'],
+                    value=config['llm_model_name'], interactive=True,
+                    allow_custom_value=True,
+                    info="Select a model from the dropdown or type a custom model name",
+                )
+                llm_temperature = gr.Slider(
+                    minimum=0.0, maximum=2.0, value=config['llm_temperature'],
+                    step=0.1, label="Temperature",
+                    info="Controls randomness in model outputs",
+                )
+                with gr.Row():
+                    llm_base_url = gr.Textbox(
+                        label="Base URL", value=config['llm_base_url'],
+                        info="API endpoint URL (if required)",
                     )
-                    llm_model_name = gr.Dropdown(
-                        label="Model Name", choices=utils.model_names['openai'],
-                        value=config['llm_model_name'], interactive=True,
-                        allow_custom_value=True,
-                        info="Select a model from the dropdown or type a custom model name",
+                    llm_api_key = gr.Textbox(
+                        label="API Key", type="password", value=config['llm_api_key'],
+                        info="Your API key (leave blank to use .env)",
                     )
-                    llm_temperature = gr.Slider(
-                        minimum=0.0, maximum=2.0, value=config['llm_temperature'],
-                        step=0.1, label="Temperature",
-                        info="Controls randomness in model outputs",
-                    )
-                    with gr.Row():
-                        llm_base_url = gr.Textbox(
-                            label="Base URL", value=config['llm_base_url'],
-                            info="API endpoint URL (if required)",
-                        )
-                        llm_api_key = gr.Textbox(
-                            label="API Key", type="password", value=config['llm_api_key'],
-                            info="Your API key (leave blank to use .env)",
-                        )
 
-            with gr.TabItem("🌐 Browser Settings", id=3):
-                with gr.Group():
-                    with gr.Row():
-                        use_own_browser = gr.Checkbox(
-                            label="Use Own Browser", value=config['use_own_browser'],
-                            info="Use your existing browser instance",
-                        )
-                        keep_browser_open = gr.Checkbox(
-                            label="Keep Browser Open", value=config['keep_browser_open'],
-                            info="Keep Browser Open between Tasks",
-                        )
-                        headless = gr.Checkbox(
-                            label="Headless Mode", value=config['headless'],
-                            info="Run browser without GUI",
-                        )
-                        disable_security = gr.Checkbox(
-                            label="Disable Security", value=config['disable_security'],
-                            info="Disable browser security features",
-                        )
-                        enable_recording = gr.Checkbox(
-                            label="Enable Recording", value=config['enable_recording'],
-                            info="Enable saving browser recordings",
-                        )
-                    with gr.Row():
-                        window_w = gr.Number(
-                            label="Window Width", value=config['window_w'],
-                            info="Browser window width",
-                        )
-                        window_h = gr.Number(
-                            label="Window Height", value=config['window_h'],
-                            info="Browser window height",
-                        )
-                    save_recording_path = gr.Textbox(
-                        label="Recording Path", placeholder="e.g. ./tmp/record_videos",
-                        value=config['save_recording_path'],
-                        info="Path to save browser recordings", interactive=True,
+            with gr.TabItem("🌐 Browser Settings", id=3), gr.Group():
+                with gr.Row():
+                    use_own_browser = gr.Checkbox(
+                        label="Use Own Browser", value=config['use_own_browser'],
+                        info="Use your existing browser instance",
                     )
-                    save_trace_path = gr.Textbox(
-                        label="Trace Path", placeholder="e.g. ./tmp/traces",
-                        value=config['save_trace_path'],
-                        info="Path to save Agent traces", interactive=True,
+                    keep_browser_open = gr.Checkbox(
+                        label="Keep Browser Open", value=config['keep_browser_open'],
+                        info="Keep Browser Open between Tasks",
                     )
-                    save_agent_history_path = gr.Textbox(
-                        label="Agent History Save Path",
-                        placeholder="e.g., ./tmp/agent_history",
-                        value=config['save_agent_history_path'],
-                        info="Specify the directory where agent history should be saved.",
-                        interactive=True,
+                    headless = gr.Checkbox(
+                        label="Headless Mode", value=config['headless'],
+                        info="Run browser without GUI",
                     )
+                    disable_security = gr.Checkbox(
+                        label="Disable Security", value=config['disable_security'],
+                        info="Disable browser security features",
+                    )
+                    enable_recording = gr.Checkbox(
+                        label="Enable Recording", value=config['enable_recording'],
+                        info="Enable saving browser recordings",
+                    )
+                with gr.Row():
+                    window_w = gr.Number(
+                        label="Window Width", value=config['window_w'],
+                        info="Browser window width",
+                    )
+                    window_h = gr.Number(
+                        label="Window Height", value=config['window_h'],
+                        info="Browser window height",
+                    )
+                save_recording_path = gr.Textbox(
+                    label="Recording Path", placeholder="e.g. ./tmp/record_videos",
+                    value=config['save_recording_path'],
+                    info="Path to save browser recordings", interactive=True,
+                )
+                save_trace_path = gr.Textbox(
+                    label="Trace Path", placeholder="e.g. ./tmp/traces",
+                    value=config['save_trace_path'],
+                    info="Path to save Agent traces", interactive=True,
+                )
+                save_agent_history_path = gr.Textbox(
+                    label="Agent History Save Path",
+                    placeholder="e.g., ./tmp/agent_history",
+                    value=config['save_agent_history_path'],
+                    info="Specify the directory where agent history should be saved.",
+                    interactive=True,
+                )
 
             with gr.TabItem("🤖 Run Agent", id=4):
                 task = gr.Textbox(

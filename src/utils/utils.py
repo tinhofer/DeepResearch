@@ -4,18 +4,17 @@ import os
 import time
 from pathlib import Path
 from typing import Dict, Optional
-import requests
 
 logger = logging.getLogger(__name__)
 
+import gradio as gr
 from langchain_anthropic import ChatAnthropic
-from langchain_mistralai import ChatMistralAI
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_mistralai import ChatMistralAI
 from langchain_ollama import ChatOllama
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
-import gradio as gr
 
-from .llm import DeepSeekR1ChatOpenAI, DeepSeekR1ChatOllama
+from .llm import DeepSeekR1ChatOllama, DeepSeekR1ChatOpenAI
 
 PROVIDER_DISPLAY_NAMES = {
     "openai": "OpenAI",
@@ -190,7 +189,7 @@ def encode_image(img_path):
 
 def get_latest_files(directory: str, file_types: list = ['.webm', '.zip']) -> Dict[str, Optional[str]]:
     """Get the latest recording and trace files"""
-    latest_files: Dict[str, Optional[str]] = {ext: None for ext in file_types}
+    latest_files: Dict[str, Optional[str]] = dict.fromkeys(file_types)
     
     if not os.path.exists(directory):
         os.makedirs(directory, exist_ok=True)

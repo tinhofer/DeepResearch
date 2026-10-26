@@ -1,43 +1,20 @@
-from openai import OpenAI
-from langchain_openai import ChatOpenAI
-from langchain_core.globals import get_llm_cache
+from typing import (
+    Any,
+    Optional,
+)
+
 from langchain_core.language_models.base import (
-    BaseLanguageModel,
-    LangSmithParams,
     LanguageModelInput,
 )
-from langchain_core.load import dumpd, dumps
 from langchain_core.messages import (
     AIMessage,
     SystemMessage,
-    AnyMessage,
-    BaseMessage,
-    BaseMessageChunk,
-    HumanMessage,
-    convert_to_messages,
-    message_chunk_to_message,
 )
-from langchain_core.outputs import (
-    ChatGeneration,
-    ChatGenerationChunk,
-    ChatResult,
-    LLMResult,
-    RunInfo,
-)
+from langchain_core.runnables import RunnableConfig
 from langchain_ollama import ChatOllama
-from langchain_core.output_parsers.base import OutputParserLike
-from langchain_core.runnables import Runnable, RunnableConfig
-from langchain_core.tools import BaseTool
+from langchain_openai import ChatOpenAI
+from openai import OpenAI
 
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Literal,
-    Optional,
-    Union,
-    cast,
-)
 
 class DeepSeekR1ChatOpenAI(ChatOpenAI):
     

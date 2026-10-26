@@ -1,36 +1,36 @@
-import json
-import logging
-import traceback
-from typing import Optional, Type, List, Dict, Any, Callable
-from PIL import Image, ImageDraw, ImageFont
-import os
 import base64
 import io
+import json
+import logging
+import os
 import platform
-from browser_use.agent.prompts import SystemPrompt, AgentMessagePrompt
+from typing import Any, Callable, Dict, List, Optional, Type
+
+from browser_use.agent.prompts import AgentMessagePrompt, SystemPrompt
 from browser_use.agent.service import Agent
 from browser_use.agent.views import (
-    ActionResult,
     ActionModel,
+    ActionResult,
+    AgentHistory,
     AgentHistoryList,
     AgentOutput,
-    AgentHistory,
 )
 from browser_use.browser.browser import Browser
 from browser_use.browser.context import BrowserContext
 from browser_use.browser.views import BrowserStateHistory
 from browser_use.controller.service import Controller
 from browser_use.telemetry.views import (
-	AgentEndTelemetryEvent,
-	AgentRunTelemetryEvent,
-	AgentStepTelemetryEvent,
+    AgentEndTelemetryEvent,
+    AgentStepTelemetryEvent,
 )
 from browser_use.utils import time_execution_async
+from json_repair import repair_json
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import (
     BaseMessage,
 )
-from json_repair import repair_json
+from PIL import Image, ImageFont
+
 from src.utils.agent_state import AgentState
 from src.utils.exceptions import LLMResponseParseError
 
