@@ -42,7 +42,8 @@ class TestAppConfig:
         assert data == restored.model_dump()
 
     def test_validates_types(self):
-        config = AppConfig(max_steps="50")  # string coerced to int
+        # Intentionally pass a str to verify Pydantic's int coercion.
+        config = AppConfig(max_steps="50")  # type: ignore[arg-type]
         assert config.max_steps == 50
         assert isinstance(config.max_steps, int)
 
