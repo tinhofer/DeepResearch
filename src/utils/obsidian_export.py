@@ -7,10 +7,9 @@ Converts standard markdown reports into Obsidian-friendly format with:
 - Mobile-friendly formatting
 """
 
-import re
-import os
-import json
 import logging
+import os
+import re
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -140,8 +139,8 @@ def _build_frontmatter(title: str, task: str, tags: list[str], sources: list[dic
         "---",
         f"title: \"{title}\"",
         f"date: {date_str}",
-        f"type: research",
-        f"tags:",
+        "type: research",
+        "tags:",
     ]
     for tag in tags:
         lines.append(f"  - {tag}")
@@ -234,7 +233,7 @@ url: "{src.get('url', '')}"
         if src.get("url"):
             note_content += f"**URL:** {src['url']}\n\n"
 
-        note_content += f"Referenced in [[obsidian_report|Deep Research Report]]\n"
+        note_content += "Referenced in [[obsidian_report|Deep Research Report]]\n"
 
         note_path = os.path.join(sources_dir, f"{safe_name}.md")
         with open(note_path, "w", encoding="utf-8") as f:
